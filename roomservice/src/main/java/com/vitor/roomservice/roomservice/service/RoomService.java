@@ -13,67 +13,55 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class RoomService {
 
-    private final Map<String, String> reservations = new HashMap<>();
+	private final Map<String, String> reservations = new HashMap<>();
 
-    @Autowired
-    private RestTemplate restTemplate;
+	@Autowired
+	private RestTemplate restTemplate;
 
-    private final String reservationServiceUrl = "http://localhost:8081";
+	public String checkRoomAvailability(String roomNumber) {
+		if (reservations.containsKey(roomNumber)) {
+			return "Room service: Room " + roomNumber + " is not available for reservation.";
+		} else {
+			return "Room service: Room " + roomNumber + " is available for reservation.";
+		}
+	}
 
-    public String checkRoomAvailability(String roomNumber) {
-        if (reservations.containsKey(roomNumber)) {
-            return "Room service: Room " + roomNumber + " is not available for reservation.";
-        } else {
-            return "Room service: Room " + roomNumber + " is available for reservation.";
-        }
-    }
+	public String makeReservation(String clientName, String roomNumber, String paymentMethod) {
 
-    public String makeReservation(String clientName, String roomNumber, String paymentMethod) {
-        if (paymentMethod == null || paymentMethod.isEmpty()) {
-            return "Room service: Payment method is required for reservation.";
-        }
+		String availabilityResult = checkRoomAvailability(roomNumber);
 
-        // Verifique a disponibilidade
-        String availabilityResult = checkRoomAvailability(roomNumber);
+		if (availabilityResult.contains("Room service: Room " + roomNumber + " is available for reservation.")) {
+			String paymentResult = restTemplate.getForObject(
+					"http://localhost:8082/payments/processPayment?method=" + paymentMethod, String.class);
 
-        if (availabilityResult.contains("Room service: Room " + roomNumber + " is available for reservation.")) {
-            // Verifique o pagamento
-            String paymentResult = restTemplate.getForObject(
-                    "http://localhost:8082/payments/processPayment?method=" + paymentMethod, String.class);
+			if (paymentResult.contains("Payment processed successfully")) {
 
-            if (paymentResult.contains("Payment processed successfully")) {
-                // Faça a reserva
-                ParameterizedTypeReference<Map<String, String>> responseType =
-                        new ParameterizedTypeReference<Map<String, String>>() {
-                        };
-                ResponseEntity<Map<String, String>> responseEntity = restTemplate.exchange(
-                        reservationServiceUrl + "/reservations/makeReservation" +
-                                "?clientName=" + clientName + "&roomNumber=" + roomNumber + "&paymentMethod=" + paymentMethod,
-                        HttpMethod.GET,
-                        null,
-                        responseType
-                );
-                Map<String, String> reservation = responseEntity.getBody();
+				ParameterizedTypeReference<Map<String, String>> responseType = new ParameterizedTypeReference<Map<String, String>>() {
+				};
+				ResponseEntity<Map<String, String>> responseEntity = restTemplate.exchange(
+						"http://localhost:8081" + "/reservations/makeReservation" + "?clientName=" + clientName
+								+ "&roomNumber=" + roomNumber + "&paymentMethod=" + paymentMethod,
+						HttpMethod.GET, null, responseType);
 
-                if (reservation != null && reservation.containsKey("reservationId") && reservation.containsKey("clientName")) {
-                    reservations.put(roomNumber, reservation.get("reservationId"));
-                    return "Room service: Room " + roomNumber + " reserved successfully. Reservation ID: "
-                            + reservation.get("reservationId") + " | " + paymentResult + " | Reservation completed.";
-                } else {
-                    // Trate falha na reserva
-                    return "Room service: Reservation failed. Invalid reservation response.";
-                }
-            } else {
-                // Trate falha no pagamento
-                return "Room service: Payment failed. " + paymentResult;
-            }
-        } else {
-            // Trate quarto não disponível
-            return availabilityResult;
-        }
-    }
+				Map<String, String> reservation = responseEntity.getBody();
 
-    public String getReservation(String roomNumber) {
-        return reservations.get(roomNumber);
-    }
+				if (reservation != null && reservation.containsKey("reservationId")
+						&& reservation.containsKey("clientName")) {
+
+					reservations.put(roomNumber, reservation.get("reservationId"));
+
+					return "Room service: Room " + roomNumber + " reserved successfully. Reservation ID: "
+							+ reservation.get("reservationId") + " | " + paymentResult + " | Reservation completed.";
+				} else {
+
+					return "Room service: Reservation failed. Invalid reservation response.";
+				}
+			} else {
+
+				return "Room service: Payment failed. " + paymentResult;
+			}
+		} else {
+			return availabilityResult;
+		}
+	}
 }

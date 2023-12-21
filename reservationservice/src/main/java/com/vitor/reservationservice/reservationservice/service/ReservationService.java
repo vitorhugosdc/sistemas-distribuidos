@@ -13,13 +13,6 @@ public class ReservationService {
 	private final List<Map<String, String>> reservations = new ArrayList<>();
 
 	public Map<String, String> makeReservation(String clientName, String roomNumber, String paymentMethod) {
-		if (paymentMethod == null || paymentMethod.isEmpty()) {
-			return null;
-		}
-
-		if (getReservationByRoom(roomNumber) != null) {
-			return null;
-		}
 
 		Map<String, String> reservation = new HashMap<>();
 		reservation.put("reservationId", "RES-" + System.currentTimeMillis());
@@ -41,7 +34,6 @@ public class ReservationService {
 				return reservation.get("reservationId");
 			}
 		}
-		return null;
+		return "There is not a reservation for this room";
 	}
-
 }

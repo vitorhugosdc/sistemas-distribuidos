@@ -12,18 +12,18 @@ import com.vitor.roomservice.roomservice.service.RoomService;
 @RequestMapping("/rooms")
 public class RoomController {
 
-    @Autowired
-    private RoomService roomService;
+	@Autowired
+	private RoomService roomService;
 
-    @GetMapping("/checkAvailability")
-    public String checkAvailability(@RequestParam String roomNumber) {
-        return roomService.checkRoomAvailability(roomNumber);
-    }
+	@GetMapping("/checkAvailability")
+	public String checkAvailability(@RequestParam String roomNumber) {
+		return roomService.checkRoomAvailability(roomNumber);
+	}
 
-    @GetMapping("/makeReservation")
-    public String makeReservation(@RequestParam String clientName, @RequestParam String roomNumber,
-            @RequestParam String paymentMethod) {
-        // Use o método atualizado em RoomService
-        return roomService.makeReservation(clientName, roomNumber, paymentMethod);
-    }
+	@GetMapping("/makeReservation")
+	public String makeReservation(@RequestParam String clientName, @RequestParam String roomNumber,
+			@RequestParam String paymentMethod) {
+
+		return roomService.makeReservation(clientName, roomNumber, paymentMethod);
+	}
 }
