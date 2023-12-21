@@ -16,7 +16,7 @@ public class PaymentService {
 		} else if ("dinheiro".equals(paymentMethod)) {
 			return "Payment processed successfully with cash!";
 		} else {
-			return "Payment processed successfully!";
+			return "Payment method was not identified!";
 		}
 	}
 }
