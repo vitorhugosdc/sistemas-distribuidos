@@ -10,49 +10,62 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class RoomService {
 
-    private final Map<String, String> reservations = new HashMap<>();
+	private final Map<String, String> reservations = new HashMap<>();
 
-    @Autowired
-    private RestTemplate restTemplate;
+	@Autowired
+	private RestTemplate restTemplate;
 
-    public String checkRoomAvailability(String roomNumber) {
-        if (reservations.containsKey(roomNumber)) {
-            return "Room service: Room " + roomNumber + " is not available for reservation.";
-        } else {
-            return "Room service: Room " + roomNumber + " is available for reservation.";
-        }
-    }
+	private final String reservationServiceUrl = "http://localhost:8081";
 
-    public String makeReservation(String clientName, String roomNumber, String paymentMethod) {
+
+	public String checkRoomAvailability(String roomNumber) {
+		if (reservations.containsKey(roomNumber)) {
+			return "Room service: Room " + roomNumber + " is not available for reservation.";
+		} else {
+			return "Room service: Room " + roomNumber + " is available for reservation.";
+		}
+	}
+
+	public String makeReservation(String clientName, String roomNumber, String paymentMethod) {
 		if (paymentMethod == null || paymentMethod.isEmpty()) {
 			return "Room service: Payment method is required for reservation.";
 		}
-        // Verifique a disponibilidade
-        String availabilityResult = checkRoomAvailability(roomNumber);
 
-        if (availabilityResult.contains("Room service: Room " + roomNumber + " is available for reservation.")) {
-            // Verifique o pagamento
-            String paymentResult = restTemplate.getForObject(
-                    "http://localhost:8082/payments/processPayment?method=" + paymentMethod, String.class);
+		// Verifique a disponibilidade
+		String availabilityResult = checkRoomAvailability(roomNumber);
 
-            if (paymentResult.contains("Payment processed successfully!")) {
-                // Faça a reserva
-                String reservationId = "RES-" + System.currentTimeMillis();
-                reservations.put(roomNumber, reservationId);
-                return "Room service: Room " + roomNumber + " reserved successfully. Reservation ID: " + reservationId
-                        + " | " + paymentResult + " | Reservation completed.";
-            } else {
-                // Trate falha no pagamento
-                return "Room service: Payment failed. " + paymentResult;
-            }
-        } else {
-            // Trate quarto não disponível
-            return availabilityResult;
-        }
-    }
+		if (availabilityResult.contains("Room service: Room " + roomNumber + " is available for reservation.")) {
+			// Verifique o pagamento
+			String paymentResult = restTemplate.getForObject(
+					"http://localhost:8082/payments/processPayment?method=" + paymentMethod, String.class);
 
-    public String getReservation(String roomNumber) {
-        return reservations.get(roomNumber);
-    }
+			if (paymentResult.contains("Payment processed successfully")) {
+				// Faça a reserva
+				String reservationId = restTemplate
+						.getForObject(
+								reservationServiceUrl + "/reservations/makeReservation" + "?clientName=" + clientName
+										+ "&roomNumber=" + roomNumber + "&paymentMethod=" + paymentMethod,
+								String.class);
+
+				if (reservationId != null && reservationId.startsWith("RES-")) {
+					reservations.put(roomNumber, reservationId);
+					return "Room service: Room " + roomNumber + " reserved successfully. Reservation ID: "
+							+ reservationId + " | " + paymentResult + " | Reservation completed.";
+				} else {
+					// Trate falha na reserva
+					return "Room service: Reservation failed. " + reservationId;
+				}
+			} else {
+				// Trate falha no pagamento
+				return "Room service: Payment failed. " + paymentResult;
+			}
+		} else {
+			// Trate quarto não disponível
+			return availabilityResult;
+		}
+	}
+
+	public String getReservation(String roomNumber) {
+		return reservations.get(roomNumber);
+	}
 }
-
