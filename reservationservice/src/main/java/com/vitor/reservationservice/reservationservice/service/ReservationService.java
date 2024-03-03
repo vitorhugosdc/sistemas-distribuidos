@@ -17,37 +17,38 @@ public class ReservationService {
     public ReservationService() {
     }
 
-    @RabbitListener(queues = "make-reservation-queue")
-    public void receiveReservationRequest(Map<String, String> reservationDetails) {
-        String clientName = reservationDetails.get("clientName");
-        String roomNumber = reservationDetails.get("roomNumber");
-        String paymentMethod = reservationDetails.get("paymentMethod");
-        // Aqui, você poderia adicionar lógica para verificar a confirmação de pagamento antes de prosseguir
+    // Método para receber a finalização da reserva após o pagamento
+    @RabbitListener(queues = "reservation-finalization-queue")
+    public void finalizeReservation(Map<String, Object> finalizationDetails) {
+        String clientName = (String) finalizationDetails.get("clientName");
+        String roomNumber = (String) finalizationDetails.get("roomNumber");
+        String paymentStatus = (String) finalizationDetails.get("paymentStatus");
 
-        // Simula a criação de uma reserva após confirmação de pagamento
-        Map<String, String> reservation = makeReservation(clientName, roomNumber, paymentMethod);
+        // Verifica o status do pagamento antes de finalizar a reserva
+        if ("confirmed".equals(paymentStatus)) {
+            // Processo para finalizar a reserva
+            Map<String, String> reservation = new HashMap<>();
+            reservation.put("reservationId", "RES-" + System.currentTimeMillis());
+            reservation.put("clientName", clientName);
+            reservation.put("roomNumber", roomNumber);
+            reservation.put("paymentStatus", paymentStatus);
 
-        // Em um cenário real, você também publicaria uma mensagem para uma fila para notificar
-        // outros serviços de que a reserva foi feita, se necessário
-    }
-
-    // Método para criar uma reserva
-    public Map<String, String> makeReservation(String clientName, String roomNumber, String paymentMethod) {
-        Map<String, String> reservation = new HashMap<>();
-        reservation.put("reservationId", "RES-" + System.currentTimeMillis());
-        reservation.put("clientName", clientName);
-        reservation.put("roomNumber", roomNumber);
-        reservation.put("paymentMethod", paymentMethod);
-
-        reservations.add(reservation);
-        return reservation;
+            reservations.add(reservation);
+            System.out.println("Reservation confirmed for room " + roomNumber + " after payment confirmation.");
+        } else {
+            // Lógica para lidar com pagamentos não confirmados
+            System.out.println("Reservation for room " + roomNumber + " was not confirmed due to payment failure.");
+        }
     }
 
     // Métodos auxiliares para gerenciar reservas
+
+    // Retorna todas as reservas
     public List<Map<String, String>> getAllReservations() {
         return new ArrayList<>(reservations);
     }
 
+    // Retorna a reserva para um determinado número de quarto
     public String getReservationByRoom(String roomNumber) {
         for (Map<String, String> reservation : reservations) {
             if (reservation.get("roomNumber").equals(roomNumber)) {

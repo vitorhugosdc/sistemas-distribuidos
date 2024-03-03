@@ -18,12 +18,6 @@ public class ReservationController {
 	@Autowired
 	private ReservationService reservationService;
 
-	@GetMapping("/makeReservation")
-	public Map<String, String> makeReservation(@RequestParam String clientName, @RequestParam String roomNumber,
-			@RequestParam String paymentMethod) {
-		return reservationService.makeReservation(clientName, roomNumber, paymentMethod);
-	}
-
 	@GetMapping("/getAllReservations")
 	public List<Map<String, String>> getAllReservations() {
 		return reservationService.getAllReservations();
