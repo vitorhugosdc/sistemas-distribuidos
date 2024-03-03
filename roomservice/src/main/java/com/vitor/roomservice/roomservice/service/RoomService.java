@@ -27,17 +27,14 @@ public class RoomService {
             return "Room service: Room " + roomNumber + " is not available for reservation.";
         }
 
-        // Preparar a mensagem para o serviço de pagamento
         Map<String, Object> paymentInfo = new HashMap<>();
         paymentInfo.put("clientName", clientName);
         paymentInfo.put("roomNumber", roomNumber);
         paymentInfo.put("paymentMethod", paymentMethod);
 
-        // Publicar mensagem para a fila de processamento de pagamento
         rabbitTemplate.convertAndSend("payments-exchange", "process.payment", paymentInfo);
 
-        // Retorno imediato, assumindo que o processamento será assíncrono
-        addReservation(roomNumber); // Adiciona a reserva após verificar a disponibilidade
+        addReservation(roomNumber);
         return "Payment processing initiated. Please wait for confirmation.";
     }
 
