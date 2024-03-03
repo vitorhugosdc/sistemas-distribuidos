@@ -16,7 +16,6 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
 
-    @Autowired
     public ReservationService(ReservationRepository reservationRepository) {
         this.reservationRepository = reservationRepository;
     }

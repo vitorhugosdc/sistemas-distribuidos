@@ -12,12 +12,10 @@ public class PaymentService {
 
     private RabbitTemplate rabbitTemplate;
 
-    @Autowired
     public PaymentService(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    // Método modificado para ser usado com RabbitMQ
     @RabbitListener(queues = "process-payment-queue")
     public void receivePaymentRequest(Map<String, String> paymentInfo) {
         String clientName = paymentInfo.get("clientName");
@@ -26,28 +24,23 @@ public class PaymentService {
 
         String result = processPayment(paymentMethod);
 
-        // Preparar a resposta
         Map<String, Object> response = new HashMap<>();
         response.put("clientName", clientName);
         response.put("roomNumber", roomNumber);
         response.put("paymentMethod", paymentMethod);
         response.put("paymentStatus", result);
 
-        // Publicar o resultado do processamento de pagamento
         rabbitTemplate.convertAndSend("payments-exchange", "payment.confirmation", response);
 
-        // Nova etapa: Notificar o ReservationService sobre o status do pagamento
         Map<String, Object> finalizationInfo = new HashMap<>();
         finalizationInfo.put("clientName", clientName);
         finalizationInfo.put("roomNumber", roomNumber);
         finalizationInfo.put("paymentMethod", paymentMethod);
         finalizationInfo.put("paymentStatus", result.equals("Payment processed successfully with credit card!") || result.equals("Payment processed successfully with cash!") ? "confirmed" : "declined");
 
-        // Publicar o status final do pagamento para o ReservationService
         rabbitTemplate.convertAndSend("reservations-exchange", "finalize.reservation", finalizationInfo);
     }
 
-    // Método de processamento de pagamento
     public String processPayment(String paymentMethod) {
         if (paymentMethod == null || paymentMethod.isEmpty()) {
             return "Payment method is required.";

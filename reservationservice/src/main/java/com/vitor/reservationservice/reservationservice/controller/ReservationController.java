@@ -31,7 +31,7 @@ public class ReservationController {
         if (reservation != null) {
             return ResponseEntity.ok(reservation);
         } else {
-            return ResponseEntity.notFound().build(); // Ou outro tipo de resposta conforme a lógica de negócios
+            return ResponseEntity.notFound().build();
         }
     }
 }
