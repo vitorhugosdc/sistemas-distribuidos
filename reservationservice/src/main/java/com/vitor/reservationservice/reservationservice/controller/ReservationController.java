@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vitor.reservationservice.reservationservice.model.Reservation;
 import com.vitor.reservationservice.reservationservice.service.ReservationService;
 
 @RestController
@@ -19,7 +20,7 @@ public class ReservationController {
 	private ReservationService reservationService;
 
 	@GetMapping("/getAllReservations")
-	public List<Map<String, String>> getAllReservations() {
+	public List<Reservation> getAllReservations() {
 		return reservationService.getAllReservations();
 	}
 
