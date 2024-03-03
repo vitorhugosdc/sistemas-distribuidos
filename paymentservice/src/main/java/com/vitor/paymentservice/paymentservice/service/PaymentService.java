@@ -40,6 +40,7 @@ public class PaymentService {
         Map<String, Object> finalizationInfo = new HashMap<>();
         finalizationInfo.put("clientName", clientName);
         finalizationInfo.put("roomNumber", roomNumber);
+        finalizationInfo.put("paymentMethod", paymentMethod);
         finalizationInfo.put("paymentStatus", result.equals("Payment processed successfully with credit card!") || result.equals("Payment processed successfully with cash!") ? "confirmed" : "declined");
 
         // Publicar o status final do pagamento para o ReservationService

@@ -25,13 +25,14 @@ public class ReservationService {
     public void finalizeReservation(Map<String, Object> finalizationDetails) {
         String clientName = (String) finalizationDetails.get("clientName");
         String roomNumber = (String) finalizationDetails.get("roomNumber");
+        String paymentMethod = (String) finalizationDetails.get("paymentMethod");
         String paymentStatus = (String) finalizationDetails.get("paymentStatus");
 
         if ("confirmed".equals(paymentStatus)) {
             Reservation reservation = new Reservation();
             reservation.setClientName(clientName);
             reservation.setRoomNumber(roomNumber);
-            reservation.setPaymentMethod("unknown");
+            reservation.setPaymentMethod(paymentMethod);
             reservation.setReservationDate(LocalDateTime.now());
 
             reservationRepository.save(reservation);
