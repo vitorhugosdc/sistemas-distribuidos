@@ -29,7 +29,6 @@ public class Reservation {
     @Column(name = "reservation_date", nullable = false)
     private LocalDateTime reservationDate;
 
-    // Constructors
     public Reservation() {
     }
 
@@ -40,7 +39,6 @@ public class Reservation {
         this.reservationDate = reservationDate;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
