@@ -2,6 +2,7 @@ package com.vitor.reservationservice.reservationservice.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class ReservationController {
 
     @GetMapping("/getReservationByRoom")
     public ResponseEntity<?> getReservationByRoom(@RequestParam String roomNumber) {
-        Reservation reservation = reservationService.getReservationByRoom(roomNumber);
+        Optional<Reservation> reservation = reservationService.getReservationByRoom(roomNumber);
         if (reservation != null) {
             return ResponseEntity.ok(reservation);
         } else {

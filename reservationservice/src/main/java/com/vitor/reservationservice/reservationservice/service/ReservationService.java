@@ -16,7 +16,8 @@ import java.util.stream.Collectors;
 public class ReservationService {
 
     private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
-    private final ReservationRepository reservationRepository;
+    private final ReservationRepository reservationRepository;    
+    private static final String PAYMENT_STATUS_CONFIRMED = "confirmed";
 
     public ReservationService(ReservationRepository reservationRepository) {
         this.reservationRepository = reservationRepository;
@@ -39,7 +40,7 @@ public class ReservationService {
     }
 
     private boolean isPaymentConfirmed(String paymentStatus) {
-        return "confirmed".equals(paymentStatus);
+    	return PAYMENT_STATUS_CONFIRMED.equals(paymentStatus);
     }
 
     private void createAndSaveReservation(Map<String, Object> finalizationDetails) {
