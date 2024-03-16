@@ -24,6 +24,10 @@ public class ReservationService {
 
     @RabbitListener(queues = "reservation-finalization-queue")
     public void finalizeReservation(Map<String, Object> finalizationDetails) {
+        if (!isValidFinalizationDetails(finalizationDetails)) {
+            logger.error("Invalid reservation details");
+            return;
+        }
         String paymentStatus = (String) finalizationDetails.get("paymentStatus");
         
         if (isPaymentConfirmed(paymentStatus)) {
@@ -62,5 +66,17 @@ public class ReservationService {
 
     public Optional<Reservation> getReservationByRoom(String roomNumber) {
         return reservationRepository.findByRoomNumber(roomNumber);
+    }
+    
+    private boolean isValidFinalizationDetails(Map<String, Object> finalizationDetails) {
+        return finalizationDetails != null &&
+               finalizationDetails.containsKey("clientName") &&
+               finalizationDetails.containsKey("roomNumber") &&
+               finalizationDetails.containsKey("paymentMethod") &&
+               finalizationDetails.containsKey("paymentStatus") &&
+               finalizationDetails.get("clientName") != null &&
+               finalizationDetails.get("roomNumber") != null &&
+               finalizationDetails.get("paymentMethod") != null &&
+               finalizationDetails.get("paymentStatus") != null;
     }
 }
