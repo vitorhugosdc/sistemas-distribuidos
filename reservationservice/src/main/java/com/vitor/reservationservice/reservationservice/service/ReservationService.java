@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,14 +60,7 @@ public class ReservationService {
         return reservationRepository.findAll();
     }
 
-    public Reservation getReservationByRoom(String roomNumber) {
-        List<Reservation> matchingReservations = reservationRepository.findAll().stream()
-            .filter(reservation -> reservation.getRoomNumber().equals(roomNumber))
-            .collect(Collectors.toList());
-
-        if (!matchingReservations.isEmpty()) {
-            return matchingReservations.get(0);
-        }
-        return null;
+    public Optional<Reservation> getReservationByRoom(String roomNumber) {
+        return reservationRepository.findByRoomNumber(roomNumber);
     }
 }
