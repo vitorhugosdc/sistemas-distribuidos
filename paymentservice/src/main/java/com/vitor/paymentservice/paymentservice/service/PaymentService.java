@@ -1,10 +1,14 @@
 package com.vitor.paymentservice.paymentservice.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
-import java.util.HashMap;
-import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class PaymentService {
@@ -17,6 +21,8 @@ public class PaymentService {
     private static final String PAYMENT_CONFIRMATION_ROUTING_KEY = "payment.confirmation";
     private static final String RESERVATIONS_EXCHANGE = "reservations-exchange";
     private static final String FINALIZE_RESERVATION_ROUTING_KEY = "finalize.reservation";
+    
+    private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
 
     private final RabbitTemplate rabbitTemplate;
 
@@ -26,6 +32,12 @@ public class PaymentService {
 
     @RabbitListener(queues = "process-payment-queue")
     public void receivePaymentRequest(Map<String, String> paymentInfo) {
+    	
+        if (paymentInfo == null || paymentInfo.get("paymentMethod") == null || paymentInfo.get("clientName") == null || paymentInfo.get("roomNumber") == null) {
+            logger.error("Invalid payment information received.");
+            return;
+        }
+        
         String result = processPayment(paymentInfo.get("paymentMethod"));
         
         Map<String, Object> response = buildResponse(paymentInfo, result);
