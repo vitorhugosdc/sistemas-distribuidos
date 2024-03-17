@@ -17,7 +17,7 @@ public class PaymentService {
     private static final String PAYMENT_CONFIRMATION_ROUTING_KEY = "payment.confirmation";
     private static final String RESERVATIONS_EXCHANGE = "reservations-exchange";
     private static final String FINALIZE_RESERVATION_ROUTING_KEY = "finalize.reservation";
-    
+
     private RabbitTemplate rabbitTemplate;
 
     public PaymentService(RabbitTemplate rabbitTemplate) {
@@ -26,26 +26,38 @@ public class PaymentService {
 
     @RabbitListener(queues = "process-payment-queue")
     public void receivePaymentRequest(Map<String, String> paymentInfo) {
-        String clientName = paymentInfo.get("clientName");
-        String roomNumber = paymentInfo.get("roomNumber");
-        String paymentMethod = paymentInfo.get("paymentMethod");
+        String result = processPayment(paymentInfo.get("paymentMethod"));
+        
+        Map<String, Object> response = buildResponse(paymentInfo, result);
+        sendPaymentConfirmation(response);
+        
+        Map<String, Object> finalizationInfo = buildFinalizationInfo(paymentInfo, result);
+        finalizeReservation(finalizationInfo);
+    }
 
-        String result = processPayment(paymentMethod);
-
+    private Map<String, Object> buildResponse(Map<String, String> paymentInfo, String result) {
         Map<String, Object> response = new HashMap<>();
-        response.put("clientName", clientName);
-        response.put("roomNumber", roomNumber);
-        response.put("paymentMethod", paymentMethod);
+        response.put("clientName", paymentInfo.get("clientName"));
+        response.put("roomNumber", paymentInfo.get("roomNumber"));
+        response.put("paymentMethod", paymentInfo.get("paymentMethod"));
         response.put("paymentStatus", result);
+        return response;
+    }
 
-        rabbitTemplate.convertAndSend(PAYMENTS_EXCHANGE, PAYMENT_CONFIRMATION_ROUTING_KEY, response);
-
+    private Map<String, Object> buildFinalizationInfo(Map<String, String> paymentInfo, String result) {
         Map<String, Object> finalizationInfo = new HashMap<>();
-        finalizationInfo.put("clientName", clientName);
-        finalizationInfo.put("roomNumber", roomNumber);
-        finalizationInfo.put("paymentMethod", paymentMethod);
+        finalizationInfo.put("clientName", paymentInfo.get("clientName"));
+        finalizationInfo.put("roomNumber", paymentInfo.get("roomNumber"));
+        finalizationInfo.put("paymentMethod", paymentInfo.get("paymentMethod"));
         finalizationInfo.put("paymentStatus", result.equals(PAYMENT_PROCESSED_SUCCESSFULLY_CREDIT_CARD) || result.equals(PAYMENT_PROCESSED_SUCCESSFULLY_CASH) ? "confirmed" : "declined");
+        return finalizationInfo;
+    }
 
+    private void sendPaymentConfirmation(Map<String, Object> response) {
+        rabbitTemplate.convertAndSend(PAYMENTS_EXCHANGE, PAYMENT_CONFIRMATION_ROUTING_KEY, response);
+    }
+
+    private void finalizeReservation(Map<String, Object> finalizationInfo) {
         rabbitTemplate.convertAndSend(RESERVATIONS_EXCHANGE, FINALIZE_RESERVATION_ROUTING_KEY, finalizationInfo);
     }
 
