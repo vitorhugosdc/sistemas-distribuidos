@@ -54,11 +54,15 @@ public class PaymentService {
     }
 
     private void sendPaymentConfirmation(Map<String, Object> response) {
-        rabbitTemplate.convertAndSend(PAYMENTS_EXCHANGE, PAYMENT_CONFIRMATION_ROUTING_KEY, response);
+        sendMessage(PAYMENTS_EXCHANGE, PAYMENT_CONFIRMATION_ROUTING_KEY, response);
     }
 
     private void finalizeReservation(Map<String, Object> finalizationInfo) {
-        rabbitTemplate.convertAndSend(RESERVATIONS_EXCHANGE, FINALIZE_RESERVATION_ROUTING_KEY, finalizationInfo);
+        sendMessage(RESERVATIONS_EXCHANGE, FINALIZE_RESERVATION_ROUTING_KEY, finalizationInfo);
+    }
+
+    private void sendMessage(String exchange, String routingKey, Object message) {
+        rabbitTemplate.convertAndSend(exchange, routingKey, message);
     }
 
     public String processPayment(String paymentMethod) {
