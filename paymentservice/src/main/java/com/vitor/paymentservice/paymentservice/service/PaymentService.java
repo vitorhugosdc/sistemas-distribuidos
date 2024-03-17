@@ -18,7 +18,7 @@ public class PaymentService {
     private static final String RESERVATIONS_EXCHANGE = "reservations-exchange";
     private static final String FINALIZE_RESERVATION_ROUTING_KEY = "finalize.reservation";
 
-    private RabbitTemplate rabbitTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
     public PaymentService(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
