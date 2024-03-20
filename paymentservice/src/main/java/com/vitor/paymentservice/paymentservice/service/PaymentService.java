@@ -17,7 +17,9 @@ public class PaymentService {
     }
 
     @RabbitListener(queues = "process-payment-queue")
+    //2. Método longo (Long method)
     public void receivePaymentRequest(Map<String, String> paymentInfo) {
+    	//3. Ausência de validação (Missing Checks)
         String clientName = paymentInfo.get("clientName");
         String roomNumber = paymentInfo.get("roomNumber");
         String paymentMethod = paymentInfo.get("paymentMethod");
@@ -36,8 +38,9 @@ public class PaymentService {
         finalizationInfo.put("clientName", clientName);
         finalizationInfo.put("roomNumber", roomNumber);
         finalizationInfo.put("paymentMethod", paymentMethod);
+        //1. Hardcoding de Strings (Magic numbers/strings)
         finalizationInfo.put("paymentStatus", result.equals("Payment processed successfully with credit card!") || result.equals("Payment processed successfully with cash!") ? "confirmed" : "declined");
-
+        //4. O método interage diretamente com o template (Dispensers)
         rabbitTemplate.convertAndSend("reservations-exchange", "finalize.reservation", finalizationInfo);
     }
 
