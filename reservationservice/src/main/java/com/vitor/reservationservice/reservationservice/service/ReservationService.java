@@ -18,15 +18,19 @@ public class ReservationService {
     private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
     private final ReservationRepository reservationRepository;    
     private static final String PAYMENT_STATUS_CONFIRMED = "confirmed";
+    private static final String INVALID_RESERVATION_DETAIS = "Invalid reservation details";
 
     public ReservationService(ReservationRepository reservationRepository) {
         this.reservationRepository = reservationRepository;
     }
 
     @RabbitListener(queues = "reservation-finalization-queue")
+    //1. O método foi dividido entre outros menores
     public void finalizeReservation(Map<String, Object> finalizationDetails) {
+    	//5. Ausência de validação corrigida
         if (!isValidFinalizationDetails(finalizationDetails)) {
-            logger.error("Invalid reservation details");
+        	//2. Uso de logging ao invés de println
+            logger.error(INVALID_RESERVATION_DETAIS);
             return;
         }
         String paymentStatus = (String) finalizationDetails.get("paymentStatus");
@@ -64,7 +68,8 @@ public class ReservationService {
     public List<Reservation> getAllReservations() {
         return reservationRepository.findAll();
     }
-
+    //3. Não acessa o repositório diretamente mais
+    //4. Também agora retorna um Optional, ao invés de null.
     public Optional<Reservation> getReservationByRoom(String roomNumber) {
         return reservationRepository.findByRoomNumber(roomNumber);
     }

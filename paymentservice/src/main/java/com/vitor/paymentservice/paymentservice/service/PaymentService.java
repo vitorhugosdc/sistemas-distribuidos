@@ -21,6 +21,7 @@ public class PaymentService {
     private static final String PAYMENT_CONFIRMATION_ROUTING_KEY = "payment.confirmation";
     private static final String RESERVATIONS_EXCHANGE = "reservations-exchange";
     private static final String FINALIZE_RESERVATION_ROUTING_KEY = "finalize.reservation";
+    private static final String INVALID_PAYMENT = "Invalid payment information received.";
     
     private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
 
@@ -31,10 +32,12 @@ public class PaymentService {
     }
 
     @RabbitListener(queues = "process-payment-queue")
+    //2. O método longo foi dividido em outras pequenas partes
     public void receivePaymentRequest(Map<String, String> paymentInfo) {
-    	
+    	//3. Ausência de validação corrigida
         if (paymentInfo == null || paymentInfo.get("paymentMethod") == null || paymentInfo.get("clientName") == null || paymentInfo.get("roomNumber") == null) {
-            logger.error("Invalid payment information received.");
+        	//1. Uso de logger para erros ao invés de println
+        	logger.error(INVALID_PAYMENT);
             return;
         }
         
@@ -72,7 +75,7 @@ public class PaymentService {
     private void finalizeReservation(Map<String, Object> finalizationInfo) {
         sendMessage(RESERVATIONS_EXCHANGE, FINALIZE_RESERVATION_ROUTING_KEY, finalizationInfo);
     }
-
+    //4. Iteração com o template modificada para outro método
     private void sendMessage(String exchange, String routingKey, Object message) {
         rabbitTemplate.convertAndSend(exchange, routingKey, message);
     }
