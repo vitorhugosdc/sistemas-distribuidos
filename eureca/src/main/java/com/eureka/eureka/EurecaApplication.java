@@ -1,15 +1,16 @@
-package com.vitor.reservationservice.reservationservice;
+package com.eureka.eureka;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 
 @SpringBootApplication
-@EnableDiscoveryClient
-public class ReservationServiceApplication {
+@EnableEurekaServer
+public class EurecaApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ReservationServiceApplication.class, args);
+		SpringApplication.run(EurecaApplication.class, args);
 	}
 
 }
